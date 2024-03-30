@@ -1,4 +1,4 @@
-module gh-repo-finder.com
+module repo-lookup-tui
 
 go 1.22.1
 
