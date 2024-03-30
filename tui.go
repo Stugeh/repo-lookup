@@ -44,8 +44,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item := m.list.SelectedItem().(item)
 
 			tea.Quit()
-			exec.Command("git", "clone", item.cloneUrl, cwd+"/"+item.shortTitle).Run()
+
+			destination := cwd + "/" + item.shortTitle
+			exec.Command("git", "clone", item.cloneUrl, destination).Run()
+			println("Repo cloned to: " + destination)
+
+			os.Exit(0)
 		}
+
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
