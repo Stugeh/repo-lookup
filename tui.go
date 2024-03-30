@@ -37,19 +37,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		if msg.String() == " " {
-			cwd, err := os.Getwd()
-			if err != nil {
-				println("Error getting current working directory")
-			}
-			item := m.list.SelectedItem().(item)
-
-			tea.Quit()
-
-			destination := cwd + "/" + item.shortTitle
-			exec.Command("git", "clone", item.cloneUrl, destination).Run()
-			println("Repo cloned to: " + destination)
-
-			os.Exit(0)
+			println("quit")
+			return m, tea.Quit
 		}
 
 	case tea.WindowSizeMsg:
@@ -87,4 +76,23 @@ func DisplayTui(repos []Repository) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+
+	// Execute after the tui exits
+	cwd, err := os.Getwd()
+	if err != nil {
+		println("Error getting current working directory")
+	}
+
+	selectedItem := m.list.SelectedItem().(item)
+	if selectedItem.cloneUrl == "" {
+		println("No repo selected")
+		os.Exit(0)
+	}
+
+	println("Cloning repo, please wait...")
+	destination := cwd + "/" + selectedItem.shortTitle
+	exec.Command("git", "clone", selectedItem.cloneUrl, destination).Run()
+	println("Repo cloned to: " + destination)
+
+	os.Exit(0)
 }
