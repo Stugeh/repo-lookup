@@ -72,5 +72,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	if parsedResp.TotalCount == 0 {
+		fmt.Println("No repositories found")
+		os.Exit(0)
+	}
+
 	DisplayTui(parsedResp.Items)
 }
