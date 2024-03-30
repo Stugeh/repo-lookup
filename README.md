@@ -2,6 +2,8 @@
 
 Small cli tool to look up and clone git repositories
 
+![Alt Text](demo.gif)
+
 ## Installation
 
 Requires Go to be installed
