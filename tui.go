@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -89,10 +90,25 @@ func DisplayTui(repos []Repository) {
 		os.Exit(0)
 	}
 
-	println("Cloning repo, please wait...")
+	loading := true
+	// Print Loading message
+	go func() {
+		println("")
+		ellipsis := []string{"   ", ".  ", ".. ", "..."}
+		baseMessage := "Cloning repo, please wait"
+
+		for loading {
+			for _, e := range ellipsis {
+				fmt.Printf("\r%s%s", baseMessage, e)
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+	}()
+
 	destination := cwd + "/" + selectedItem.shortTitle
 	exec.Command("git", "clone", selectedItem.cloneUrl, destination).Run()
-	println("Repo cloned to: " + destination)
+	loading = false
+	println("\nRepo cloned to: " + destination)
 
 	os.Exit(0)
 }
