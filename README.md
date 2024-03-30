@@ -13,6 +13,7 @@ go build -o ~/.local/bin/rlu
 ```
 
 _Windows_
+
 I don't know where you put binaries on Windows. I'm sure you can figure it out.
 
 ## Usage
