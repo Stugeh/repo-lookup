@@ -6,7 +6,10 @@ Small cli tool to look up and clone git repositories
 
 ## Installation
 
-Requires Go to be installed
+Prerequisites:
+
+- Go
+- \[Optional] [github-cli](https://github.com/cli/cli/tree/trunk) if you want to use the -f flag
 
 _Unix_
 
@@ -21,5 +24,7 @@ I don't know where you put binaries on Windows. I'm sure you can figure it out.
 ## Usage
 
 ```bash
-rlu <repo-name>
+rlu [-f] <repo-name>
 ```
+
+The -f flag is for forking the repo instead of just cloning.

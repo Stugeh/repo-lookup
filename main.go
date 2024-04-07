@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 )
 
 type Licence struct {
@@ -32,13 +34,23 @@ type QueryResponse struct {
 
 func main() {
 	args := os.Args
+	isFork := flag.Bool("f", false, "Force search")
+	flag.Parse()
+
+	if *isFork && !isGitHubCLIInstalled() {
+		fmt.Println("gh (github-cli) is not installed. Please install it before using the -f flag.")
+		os.Exit(1)
+	}
+
+	queryIndex := findFlagIndex(args[1:]) + 1
+
 	if len(args) < 2 {
-		fmt.Println("Usage: rlu <search_query>")
+		fmt.Println("Usage:\nCloning: rlu <search_query>\nForking: Cloning: rlu -f <search_query>")
 		os.Exit(1)
 	}
 
 	client := http.Client{}
-	url := "https://api.github.com/search/repositories?q=" + args[1] + "&sort=stars" + "&order=desc"
+	url := "https://api.github.com/search/repositories?q=" + args[queryIndex] + "&sort=stars" + "&order=desc"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -77,5 +89,76 @@ func main() {
 		os.Exit(0)
 	}
 
-	DisplayTui(parsedResp.Items)
+	selectedItem := DisplayTui(parsedResp.Items)
+
+	if selectedItem.cloneUrl == "" {
+		println("No repo selected")
+		os.Exit(0)
+	}
+
+	{
+		destination := getDestinationDir(selectedItem.shortTitle)
+
+		command := buildCmdBase(*isFork)
+
+		if *isFork {
+			command = append(command, selectedItem.fullName)
+		} else {
+			command = append(command, selectedItem.cloneUrl, destination)
+		}
+
+		cmd := exec.Command(command[0], command[1:]...)
+
+		// Connect to system IO
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Start()
+		if err != nil {
+			fmt.Println("Error starting command:", err)
+			return
+		}
+
+		err = cmd.Wait()
+		if err != nil {
+			os.Exit(1)
+		}
+
+	}
+
+	os.Exit(0)
+}
+
+func isGitHubCLIInstalled() bool {
+	cmd := exec.Command("which", "gh")
+	err := cmd.Run()
+	return err == nil
+}
+
+func findFlagIndex(args []string) int {
+	for i, arg := range args {
+		if arg[0] != '-' {
+			return i
+		}
+	}
+	return len(args)
+}
+
+func getDestinationDir(dirName string) string {
+
+	cwd, err := os.Getwd()
+
+	if err != nil {
+		println("Error getting current working directory")
+	}
+	return cwd + "/" + dirName
+}
+
+func buildCmdBase(isFork bool) []string {
+	if isFork {
+		return []string{"gh", "repo", "fork"}
+	}
+	return []string{"git", "clone"}
+
 }

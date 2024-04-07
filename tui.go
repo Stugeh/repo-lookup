@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,7 +10,7 @@ import (
 )
 
 type item struct {
-	title, shortTitle, desc, cloneUrl string
+	title, fullName, shortTitle, desc, cloneUrl string
 }
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
@@ -57,7 +55,7 @@ func (m model) View() string {
 	return docStyle.Render(m.list.View())
 }
 
-func DisplayTui(repos []Repository) {
+func DisplayTui(repos []Repository) item {
 	for _, repo := range repos {
 		items = append(items,
 			item{
@@ -65,6 +63,7 @@ func DisplayTui(repos []Repository) {
 				desc:       repo.Description,
 				cloneUrl:   repo.CloneUrl,
 				shortTitle: repo.Name,
+				fullName:   repo.FullName,
 			})
 	}
 
@@ -78,37 +77,5 @@ func DisplayTui(repos []Repository) {
 		os.Exit(1)
 	}
 
-	// Execute after the tui exits
-	cwd, err := os.Getwd()
-	if err != nil {
-		println("Error getting current working directory")
-	}
-
-	selectedItem := m.list.SelectedItem().(item)
-	if selectedItem.cloneUrl == "" {
-		println("No repo selected")
-		os.Exit(0)
-	}
-
-	loading := true
-	// Print Loading message
-	go func() {
-		println("")
-		ellipsis := []string{"   ", ".  ", ".. ", "..."}
-		baseMessage := "Cloning repo, please wait"
-
-		for loading {
-			for _, e := range ellipsis {
-				fmt.Printf("\r%s%s", baseMessage, e)
-				time.Sleep(500 * time.Millisecond)
-			}
-		}
-	}()
-
-	destination := cwd + "/" + selectedItem.shortTitle
-	exec.Command("git", "clone", selectedItem.cloneUrl, destination).Run()
-	loading = false
-	println("\nRepo cloned to: " + destination)
-
-	os.Exit(0)
+	return m.list.SelectedItem().(item)
 }
