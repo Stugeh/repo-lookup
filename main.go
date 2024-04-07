@@ -44,8 +44,8 @@ func main() {
 
 	queryIndex := findFlagIndex(args[1:]) + 1
 
-	if len(args) < 2 {
-		fmt.Println("Usage:\nCloning: rlu <search_query>\nForking: Cloning: rlu -f <search_query>")
+	if !*isFork && len(args) < 2 || *isFork && len(args) < 3 {
+		fmt.Println("\n\nUsage:\nCloning: rlu <search_query>\nForking: Cloning: rlu -f <search_query>\n\n")
 		os.Exit(1)
 	}
 
